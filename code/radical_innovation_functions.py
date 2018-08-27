@@ -385,8 +385,19 @@ def cluster_hist(G,attr_list,log=False):
         
         
     
-    
+def get_papercluster(G,id_list,attr_list):
+    """
+    quick diagnostic tool to check which cluster the paper is and size of cluster
+    """
+    node_list=[G.nodes[i] for i in id_list]
+    #out=[node_list[i].get([j],None) for  ]
 
+         
+def get_node_w_attributes(G,value,attr):
+    out=[x for x,y in G.nodes(data=True) if y[attr]==value]
+    return out
+            
+            
 ##############################################################
 # CALCULATION OF FUTURERANK: alpha*Pagerank + gamma*R_Time
 ##############################################################
