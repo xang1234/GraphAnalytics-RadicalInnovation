@@ -11,8 +11,8 @@ os.chdir(r'C:\Users\david\github\GraphAnalytics-RadicalInnovation\code')
 import radical_innovation_functions as f
 import networkx as nx
 import numpy as np
-
-
+import operator
+import matplotlib.pyplot as plt
 # Read csv and create graph
 ml_articles="D:/Social Project/ML articles expanded keywords.csv"
 G=f.create_graph(ml_articles)
@@ -48,3 +48,15 @@ Cluster_CNM=f.cluster_subgraph_by_year_cnm(G_connected,option='accumulate',
 # Analyze results
 Louvain=['Louvain cluster'+str(i) for i in range(1991,2017,1)] 
 f.cluster_hist(Cluster_Louvain,Louvain,log=True)
+
+# Get top ranked
+pagerank=nx.pagerank(Cluster_Louvain)
+top50_pagerank = sorted(pagerank.items(), key=operator.itemgetter(1), reverse=True)[:50]
+
+# Get paper clusters
+plot=[f.get_papercluster(Cluster_Louvain,top50_pagerank[i][0],Louvain) for i in range(len(top50_pagerank))]
+
+for i in range(len(plot)):
+    plt.plot(plot[i])
+plt.show()
+    

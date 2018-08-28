@@ -383,19 +383,36 @@ def cluster_hist(G,attr_list,log=False):
         #             bins=list(range(min(d),min(100,max(d)+2))),
         #             hist_kws={'log':log}).set_title(attr_list[i])
         
-        
+def get_node_attr(G,value,attr):
+    """
+    Returns nodes from a dictionary with attribute matching value
+    """
+    out=[x for x,y in G.nodes(data=True) if y.get(attr,"No")==value]
+    return out     
     
-def get_papercluster(G,id_list,attr_list):
+def get_edge_attr(G,value,attr):
+    """
+    Returns edges from a dictionary with attribute matching value
+    """
+    out=[(x,y) for x,y,z in G.edges(data=True) if z.get(attr,"No")==value]
+    return out   
+    
+def get_cluster_size(G,cluster_no,attr):
+    """
+    Return the size of the cluster with cluster_no
+    """
+    return len(get_node_attr(G,cluster_no,attr))
+    
+def get_papercluster(G,paper_id,attr_list):
     """
     quick diagnostic tool to check which cluster the paper is and size of cluster
     """
-    node_list=[G.nodes[i] for i in id_list]
-    #out=[node_list[i].get([j],None) for  ]
+    cluster=[nx.get_node_attributes(G,i).get(paper_id,None) for i in attr_list]
+    cluster_size=[get_cluster_size(G,cluster[i],attr_list[i]) for i in range(len(cluster))]
+    return cluster,cluster_size
 
          
-def get_node_w_attributes(G,value,attr):
-    out=[x for x,y in G.nodes(data=True) if y[attr]==value]
-    return out
+
             
             
 ##############################################################
