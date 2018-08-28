@@ -45,8 +45,7 @@ Cluster_Louvain=f.cluster_subgraph_by_year_louvain(G_connected, H,
                                                    retain_clus=retain,
                                                    res_louv=5,wei='Year_Diff') 
 
-Cluster_CNM=f.cluster_subgraph_by_year_cnm(G_connected,option='accumulate',
-                                     connected='yes')
+Cluster_CNM=f.cluster_subgraph_by_year_cnm(G_connected,H)
 
 
 # Analyze results

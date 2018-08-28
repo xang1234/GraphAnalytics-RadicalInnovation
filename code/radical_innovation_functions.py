@@ -308,8 +308,7 @@ def set_cluster(cluster_list_set,G,attribute_name):
     nx.set_node_attributes(G,dict_G,name=attribute_name)
 
     
-def cluster_subgraph_by_year_cnm(Graph,H, option='accumulate',
-                             connected='yes',wei='weight'):
+def cluster_subgraph_by_year_cnm(Graph,H):
     """
     option='accumulate' will accumulate the nodes and edges of the graph year on year
     option='separate' will only keep the nodes year on year, edges from previous years will not be retained
