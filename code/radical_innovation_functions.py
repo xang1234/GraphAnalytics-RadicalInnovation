@@ -187,9 +187,9 @@ def delete_node_attr(G,att_list):
             d.pop(att, None)
             
             
-def cluster_subgraph_by_year_louvain(Graph,option='accumulate',
+def cluster_subgraph_for_clustering(Graph,option='accumulate',
                              connected='yes',retain_clus='yes',
-                             res_louv=1,wei='weight'):
+                             ):
     """
     option='accumulate' will accumulate the nodes and edges of the graph year on year
     option='separate' will only keep the nodes year on year, edges from previous years will not be retained
@@ -248,7 +248,24 @@ def cluster_subgraph_by_year_louvain(Graph,option='accumulate',
                 raise Exception("wrong keyword for connected. use yes or no only")            
                       
             print('Year:',str(i+min_year),'--',H[i].number_of_nodes(),'nodes --',H[i].number_of_edges(),'edges')
-    #  implement clustering
+    del node_yr, edge_yr, n_year, min_year, list_dict_edge_year, list_dict_node_year
+    gc.collect()
+    return H
+
+    #  implement clustering            
+def cluster_subgraph_by_year_louvain(Graph, H, retain_clus='yes', res_louv=1,wei='weight'):
+    """
+    res_louv is used to set the resolution parameter for the louvain clustering calculation
+    wei is used for the edge weight in the louvain clustering calculation
+    """
+    # get node and edge year
+    node_yr=nx.get_node_attributes(Graph,'Year')
+    edge_yr=nx.get_edge_attributes(Graph,'Year')
+    
+    # dictionarys to filter nodes and edges by year
+    n_year=int(max(node_yr.values())-min(node_yr.values()))+1
+    min_year=min(node_yr.values())    
+ 
     
     c_louv=[{} for i in range(n_year)]
     J=Graph
@@ -276,7 +293,7 @@ def cluster_subgraph_by_year_louvain(Graph,option='accumulate',
         if H[i].number_of_edges()>0:
             print('Year:',str(i+min_year),'--',round(stop-start,2),'seconds --',str(len(set(c_louv[i].values()))),'clusters --',round(community.modularity(c_louv[i],H[i]),2),'modularity')
       
-    del H, c_louv, node_yr, edge_yr, n_year, min_year, list_dict_edge_year, list_dict_node_year
+    del c_louv, node_yr, edge_yr, n_year, min_year
     gc.collect()
     return J
     #return H
@@ -291,8 +308,7 @@ def set_cluster(cluster_list_set,G,attribute_name):
     nx.set_node_attributes(G,dict_G,name=attribute_name)
 
     
-def cluster_subgraph_by_year_cnm(Graph,option='accumulate',
-                             connected='yes',wei='weight'):
+def cluster_subgraph_by_year_cnm(Graph,H):
     """
     option='accumulate' will accumulate the nodes and edges of the graph year on year
     option='separate' will only keep the nodes year on year, edges from previous years will not be retained
@@ -300,8 +316,7 @@ def cluster_subgraph_by_year_cnm(Graph,option='accumulate',
     connected='no' will use all available nodes for each year
     retain_clus='yes' will initialize the louvain calculation such that the previous year's cluster is used to initialize this year's cluster
     retain_clus='no' will use a random initialization for the louvain calculation
-    res_louv is used to set the resolution parameter for the louvain clustering calculation
-    wei is used for the edge weight in the louvain clustering calculation
+
     """
     from networkx.algorithms.community import greedy_modularity_communities # This is to run CNM , remove if not neededs
 
@@ -312,46 +327,6 @@ def cluster_subgraph_by_year_cnm(Graph,option='accumulate',
     # dictionarys to filter nodes and edges by year
     n_year=int(max(node_yr.values())-min(node_yr.values()))+1
     min_year=min(node_yr.values())
-    list_dict_node_year=[{} for i in range(n_year)]
-    list_dict_edge_year=[{} for i in range(n_year)]
-    for i in range(n_year):
-        if option=='accumulate':
-            list_dict_edge_year[i]={k:v for (k,v) in edge_yr.items() if  v<=min_year+i}
-            list_dict_node_year[i]={k:v for (k,v) in node_yr.items() if  v<=min_year+i}
-        elif option=='separate':
-            list_dict_edge_year[i]={k:v for (k,v) in edge_yr.items() if  v==min_year+i}
-            list_dict_node_year[i]={k:v for (k,v) in node_yr.items() if  v<=min_year+i}       
-        
-        else:
-            raise Exception("wrong keyword for option. use accumulate or separate only")
-     
-    print('Input Graph has',Graph.number_of_nodes(),'nodes and',Graph.number_of_edges(),'edges')  
-    H=[nx.Graph() for i in range(n_year)]
-    if option=='accumulate':
-        for i in range(n_year):
-            if connected=='no':
-                 H[i]=nx.subgraph(Graph,list(list_dict_node_year[i].keys()))
-            elif connected=='yes':
-                 H[i]=nx.subgraph(Graph,list(list_dict_node_year[i].keys()))
-                 H[i]=max(nx.connected_component_subgraphs(H[i]), key=len)
-            #H[i].add_nodes_from(list(list_dict_node_year[i].keys()))
-            #H[i].add_edges_from(list(list_dict_edge_year[i].keys()))
-            else:
-                raise Exception("wrong keyword for connected. use yes or no only")
-            print('Year:',str(i+min_year),'--',H[i].number_of_nodes(),'nodes --',H[i].number_of_edges(),'edges')
-    elif option=='separate':
-        for i in range(n_year):
-            if connected=='no':
-                 H[i]=nx.subgraph(Graph,list(list_dict_node_year[i].keys()))
-            elif connected=='yes':
-                 H[i]=nx.subgraph(Graph,list(list_dict_node_year[i].keys()))
-                 H[i]=max(nx.connected_component_subgraphs(H[i]), key=len)
-            #H[i].add_nodes_from(list(list_dict_node_year[i].keys()))
-            #H[i].add_edges_from(list(list_dict_edge_year[i].keys()))
-            else:
-                raise Exception("wrong keyword for connected. use yes or no only")            
-                      
-            print('Year:',str(i+min_year),'--',H[i].number_of_nodes(),'nodes --',H[i].number_of_edges(),'edges')
     
     #  implement clustering
     J=Graph
@@ -365,7 +340,7 @@ def cluster_subgraph_by_year_cnm(Graph,option='accumulate',
         set_cluster(c_cnm[i],J,'CNM cluster'+str(i+min_year))
         stop = time.time()
         print('Year:',str(i+min_year),'--',round(stop-start,2),'seconds --',str(len(set(c_cnm[i]))),'clusters')        
-    del H, c_cnm, node_yr, edge_yr, n_year, min_year, list_dict_edge_year, list_dict_node_year
+    del c_cnm, node_yr, edge_yr, n_year, min_year
     gc.collect()
     return J
     #return H
@@ -383,19 +358,36 @@ def cluster_hist(G,attr_list,log=False):
         #             bins=list(range(min(d),min(100,max(d)+2))),
         #             hist_kws={'log':log}).set_title(attr_list[i])
         
-        
+def get_node_attr(G,value,attr):
+    """
+    Returns nodes from a dictionary with attribute matching value
+    """
+    out=[x for x,y in G.nodes(data=True) if y.get(attr,"No")==value]
+    return out     
     
-def get_papercluster(G,id_list,attr_list):
+def get_edge_attr(G,value,attr):
+    """
+    Returns edges from a dictionary with attribute matching value
+    """
+    out=[(x,y) for x,y,z in G.edges(data=True) if z.get(attr,"No")==value]
+    return out   
+    
+def get_cluster_size(G,cluster_no,attr):
+    """
+    Return the size of the cluster with cluster_no
+    """
+    return len(get_node_attr(G,cluster_no,attr))
+    
+def get_papercluster(G,paper_id,attr_list):
     """
     quick diagnostic tool to check which cluster the paper is and size of cluster
     """
-    node_list=[G.nodes[i] for i in id_list]
-    #out=[node_list[i].get([j],None) for  ]
+    cluster=[nx.get_node_attributes(G,i).get(paper_id,None) for i in attr_list]
+    cluster_size=[get_cluster_size(G,cluster[i],attr_list[i]) for i in range(len(cluster))]
+    return cluster,cluster_size
 
          
-def get_node_w_attributes(G,value,attr):
-    out=[x for x,y in G.nodes(data=True) if y[attr]==value]
-    return out
+
             
             
 ##############################################################
