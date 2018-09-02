@@ -1,7 +1,8 @@
 
 # coding: utf-8
 
-# ## ver10.0
+# ## ver10.1
+# ### Use exponential of 'Jacquard' in weighted_graph.gexf as weight
 
 # In[1]:
 
@@ -283,6 +284,16 @@ for col in cols:
 # In[25]:
 
 
+jac=nx.get_edge_attributes(Graph,'Jacquard')
+jac_exp={k:float(np.exp(5*v)) for (k,v) in jac.items()}
+nx.set_edge_attributes(Graph,jac_exp,'Jacquard_Exp' )
+### Write to Gephi files
+#nx.write_gexf(Graph, graph_dir + 'ML+_graph.gexf') ## To check numpy float/int error
+
+
+# In[26]:
+
+
 num_nodes = len(Graph.node)
 num_edges = Graph.number_of_edges()
 print('# of nodes : ', num_nodes, '| # of edges : ', num_edges)
@@ -290,13 +301,13 @@ print('# of nodes : ', num_nodes, '| # of edges : ', num_edges)
 
 # ### Extract the largest connected component
 
-# In[26]:
+# In[27]:
 
 
 Graph = max(nx.connected_component_subgraphs(Graph), key=len)
 
 
-# In[27]:
+# In[28]:
 
 
 # add degree and Num_In_Citations later
@@ -313,7 +324,7 @@ num_in_citations_dict = {i: (int(degree_dict[i] - num_out_citations_dict[i])) fo
 nx.set_node_attributes(Graph,num_in_citations_dict,'Num_In_Citations')
 
 
-# In[28]:
+# In[29]:
 
 
 # Here we create subgraphs, nodes and edges are accumulated every year. Calculation done for CNM and Louvain method
@@ -383,19 +394,19 @@ def subgraph_by_year(Graph,option='accumulate',connected='yes'):
     return H
 
 
-# In[29]:
+# In[30]:
 
 
 connected = 'no' ### connected='yes' option used to take too long.
 
 
-# In[30]:
+# In[31]:
 
 
 Graphs = subgraph_by_year(Graph,option='accumulate',connected=connected) 
 
 
-# In[31]:
+# In[32]:
 
 
 ### Add Degree and Num_In_Citations which may increase every year 
@@ -417,7 +428,7 @@ for j in range(n_year):
     nx.set_node_attributes(Graph,num_in_citations_dict,'Num_In_Citations')
 
 
-# In[38]:
+# In[33]:
 
 
 ### Write to Gephi files
@@ -428,7 +439,7 @@ for i in range(1):
 
 # ### Cluster graph
 
-# In[32]:
+# In[34]:
 
 
 try:
@@ -443,7 +454,7 @@ else:
 
 
 
-# In[33]:
+# In[35]:
 
 
 def cluster_graph(H, resolution, weight = 'weight'):
@@ -495,13 +506,13 @@ def cluster_graph(H, resolution, weight = 'weight'):
     return H
 
 
-# In[39]:
+# In[36]:
 
 
 resolution = 2.2
 #weight = 'weight'
-#weight = 'Jacquard'
-weight = 'Year_Diff'
+weight = 'Jacquard_Exp'
+#weight = 'Year_Diff'
 
 desc = '_{0:s}_connected{1:s}_res{2:.2f}_wtBy{3:s}_initpart'.format(node_input, connected, resolution, weight) 
 print(desc)
@@ -515,14 +526,14 @@ Clustered=cluster_graph(Graphs, resolution=resolution, weight=weight)
 
 # ### Calculate z and P
 
-# In[40]:
+# In[37]:
 
 
 #Copy_Clus2 = Clustered.copy()
 Copy_Clus2 = [g.copy() for g in Clustered.copy()]
 
 
-# In[41]:
+# In[38]:
 
 
 try:
@@ -537,7 +548,7 @@ else:
 
 
 
-# In[42]:
+# In[39]:
 
 
 ### Calculate P, z, and cluster size by Pandas DataFrame manipulation
@@ -654,7 +665,7 @@ def calculate_z_p(Graph,clus_attr = 'Louvain cluster'):
     print("#{0: 7d} nodes".format(num_nodes), " | {0: 7d} edges".format(num_edges), ' | Time for calculation of z and P: {0:.0f} sec'.format(end - start))
 
 
-# In[43]:
+# In[40]:
 
 
 def get_oldest_paper(Graph,clus_attr):
@@ -705,7 +716,7 @@ def get_oldest_paper(Graph,clus_attr):
 #     ML_df.index.name = 'index'
 #     ML_df.to_csv(graph_dir + 'All_Papers_' + str(year) + '.csv')
 
-# In[44]:
+# In[41]:
 
 
 start = timer()
@@ -726,7 +737,7 @@ end = timer()
 print('\n[Finished to calculate z and P for all years] \n Total calculation time: {0:.0f} sec'.format(end - start))
 
 
-# In[45]:
+# In[42]:
 
 
 stack_df = pd.concat(df_list) 
@@ -736,25 +747,25 @@ stack_df.index.name = 'index'
 display(stack_df)
 
 
-# In[46]:
+# In[43]:
 
 
 #stack_df.to_csv(graph_dir + 'All_Papers_Timepoint_Stack' + desc + '.csv', encoding='utf-8')
 
 
-# In[47]:
+# In[44]:
 
 
 stack_df.set_index(['id', 'Timepoint'])
 
 
-# In[48]:
+# In[45]:
 
 
 output_unstack = True
 
 
-# In[49]:
+# In[46]:
 
 
 if output_unstack:
@@ -762,7 +773,7 @@ if output_unstack:
     unstack_df
 
 
-# In[50]:
+# In[47]:
 
 
 if output_unstack:
@@ -771,7 +782,7 @@ if output_unstack:
     display(unstack_df)
 
 
-# In[51]:
+# In[48]:
 
 
 if output_unstack:
@@ -781,7 +792,7 @@ if output_unstack:
     #unstack_w_df.to_csv(graph_dir + 'All_Papers_Timepoint_Untack' + desc + '.csv', encoding='utf-8')
 
 
-# In[52]:
+# In[49]:
 
 
 Graph = Copy_Clus2[-1]
@@ -791,7 +802,7 @@ df.index.name = 'id'
 
 
 
-# In[53]:
+# In[50]:
 
 
 ### Add Oldest in cluster flag
@@ -801,20 +812,20 @@ df.loc[:,'Oldest_in_Cluster Flag'] = df[['Year', 'Oldest_in_Cluster Year']].appl
 df
 
 
-# In[54]:
+# In[51]:
 
 
 cols = [col for col in ['ML_flag', 'Oldest_in_Cluster Flag', 'Oldest_in_Cluster Year', 'Year', 'authors', 'journalName', 'venue', 'pdfUrls', 's2Url', 'keyPhrases', 'title', 'paperAbstract', 'Num_Out_Citations'] if col in df.columns.tolist()]
 cols
 
 
-# In[55]:
+# In[52]:
 
 
 static_df = df[cols].copy()
 
 
-# In[56]:
+# In[53]:
 
 
 if output_unstack:
@@ -825,13 +836,13 @@ if output_unstack:
     complete_w_df.to_csv(graph_dir + 'All_Papers_Complete_ver10' + desc + '.csv', encoding='utf-8')
 
 
-# In[57]:
+# In[54]:
 
 
 measures = ['Cluster_Size', 'z', 'P', 'Degree', 'Num_In_Citations']
 
 
-# In[58]:
+# In[55]:
 
 
 transform_dict = {col: {col+'_diff':'diff', col+'_shift':'shift'} for col in measures}
@@ -840,7 +851,7 @@ stack_diff_df = stack_df.groupby('id').agg(transform_dict)
 stack_diff_df
 
 
-# In[59]:
+# In[56]:
 
 
 stack_diff_df.columns = ['{0[1]:s}'.format(col) for col in stack_diff_df.columns]
@@ -848,14 +859,14 @@ stack_diff_df.index.name = 'index'
 display(stack_diff_df)
 
 
-# In[60]:
+# In[57]:
 
 
 #stack2_df = pd.merge(stack_df, stack_diff_df, left_index = True, right_index = True)
 #stack2_df
 
 
-# In[61]:
+# In[58]:
 
 
 stack2_df = stack_df.copy()
@@ -865,7 +876,7 @@ stack2_df
     
 
 
-# In[62]:
+# In[59]:
 
 
 stack2_df = stack2_df.reset_index(drop=True)
@@ -873,14 +884,14 @@ stack2_df.set_index('id', inplace=True)
 stack2_df
 
 
-# In[63]:
+# In[60]:
 
 
 static2_df = df[['Oldest_in_Cluster Flag', 'Oldest_in_Cluster Year', 'Year', 'title', 'Num_Out_Citations']].copy()
 static2_df
 
 
-# In[64]:
+# In[61]:
 
 
 long_df = pd.merge(static2_df, stack2_df, left_index = True, right_index = True)
@@ -891,14 +902,14 @@ long_w_df.to_csv(graph_dir + 'All_Papers_Long_ver10' + desc + '.csv', encoding='
 
 
 
-# In[65]:
+# In[62]:
 
 
 long2_df = long_df.copy()
 long2_df.groupby('Cluster_Size')[['Louvain cluster']].nunique()
 
 
-# In[66]:
+# In[63]:
 
 
 start = timer()
@@ -907,7 +918,7 @@ end = timer()
 print('Time to write Gephi file: {0:.0f} sec'.format(end - start)) 
 
 
-# In[67]:
+# In[64]:
 
 
 global_end = timer()
